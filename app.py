@@ -2,10 +2,43 @@
 from streamlit_folium import folium_static
 import folium
 import pandas as pd
+import pickle
 import numpy as np
 import pylab as pl
 import matplotlib.pyplot as plt
+from matplotlib.patches import Patch
+import matplotlib.font_manager as font_manager
 import seaborn as sns
+
+font_legend = font_manager.FontProperties(family='Arial', style='normal', size=10)
+
+def encode_depto_pretty(series):
+    "Codifica departamento INE, formateado"
+    deptos_dict = {
+        'Montevideo': 1,
+        'Artigas': 2,
+        'Canelones': 3,
+        'Cerro Largo': 4,
+        'Colonia': 5,
+        'Durazno': 6,
+        'Flores': 7,
+        'Florida': 8,
+        'Lavalleja': 9,
+        'Maldonado': 10,
+        'Paysandú': 11,
+        'Río Negro': 12,
+        'Rivera': 13,
+        'Rocha': 14,
+        'Salto': 15,
+        'San José': 16,
+        'Soriano': 17,
+        'Tacuarembó': 18,
+        'Treinta y Tres': 19
+        }
+    cod = series.map(deptos_dict).values
+
+    return cod[0]
+
 
 #icon = 'data/flag.png'
 
@@ -22,29 +55,42 @@ def load_data(data_path):
     data = pd.read_csv(data_path)
     return data
 
+def load_data_pickle(data_path):
+    data = pd.read_pickle(data_path, compression='gzip')
+    return data
+
 deptos = load_data('data/deptos.csv')
 data_group = load_data('data/datos_tablero.csv')
 coords = load_data('data/coords.csv')
+nom_depto = ['Montevideo', 'Artigas', 'Canelones',
+              'Cerro Largo', 'Colonia', 'Durazno',
+              'Flores', 'Florida', 'Lavalleja',
+              'Maldonado', 'Paysandú', 'Río Negro',
+              'Rivera', 'Rocha', 'Salto', 'San José',
+              'Soriano', 'Tacuarembó', 'Treinta y Tres']
 
+
+agrup_mig = load_data_pickle('data/agrup_piramides_tablero.pkl')
 
 #### sidebars #####
 st.sidebar.title('Selección de departamentos 👇')
 
-nom_depto = list(deptos.DEPTO)
 
 # sidebar 1
 nom_depto1 = st.sidebar.selectbox("Departamento", nom_depto, key=1, index=3)
-depto1 = list(deptos.loc[deptos.DEPTO == nom_depto1, 'COD'])[0]
+depto1 = encode_depto_pretty(pd.Series(nom_depto1))
 
 # sidebar 2
 nom_depto2 = st.sidebar.selectbox("Departamento", nom_depto, key=3, index=9)
-depto2 = list(deptos.loc[deptos.DEPTO == nom_depto2, 'COD'])[0]
+depto2 = encode_depto_pretty(pd.Series(nom_depto2))
 
 # extrae datos en objetos
 d1 = data_group.depto_origen==depto1
 d2 = data_group.depto_destino==depto2
 data = data_group.loc[(d1) & (d2)]
 
+# crea código de díada
+cod = int(data.cod.values)
 
 st.dataframe(data)
 
@@ -52,7 +98,7 @@ st.dataframe(data)
 # mapita de folium
 center = [-32.706, -56.0284]
 
-m = folium.Map(location=center, zoom_start=6, tiles='OpenStreetMap',
+m = folium.Map(location=center, zoom_start=6, tiles='Cartodb Positron',
                width='70%', height='70%', left='0%', top='0%')
 
 col_c = ['lat', 'lon']
@@ -61,11 +107,13 @@ coords_2 = list(coords.loc[coords.DEPTO==depto2, col_c].values[0])
 
 
 # add marker
-folium.Marker(coords_1, popup=nom_depto1).add_to(m)
-folium.Marker(coords_2, popup=nom_depto2).add_to(m)
+ic1 = folium.Icon(color="darkblue",  icon="bullseye", prefix='fa')
+ic2 = folium.Icon(color="cadetblue", icon="bullseye", prefix='fa')
+folium.Marker(coords_1, popup=nom_depto1, icon=ic1).add_to(m)
+folium.Marker(coords_2, popup=nom_depto2, icon=ic2).add_to(m)
 
-line = folium.PolyLine(locations=[coords_1, coords_2],
-color='red', weight=5)
+loc = [coords_1, coords_2]
+line = folium.PolyLine(locations=loc, color='gray', weight=4)
 
 m.add_child(line)
 
@@ -88,63 +136,66 @@ st.markdown(data_text)
 
 
 
-# def calc_props(df):
-#     df['porc_pers'] = (df.personas / df.personas.sum())*100
-#     df['personas'] = np.where(df['sexo'] ==1, -df['personas'], df['personas'])
-#     df['porc_pers'] = np.where(df['sexo'] ==1, -df['porc_pers'], df['porc_pers'])
-#     return df
 
-# ciudad_1_gr = calc_props(data_tramos.loc[data_tramos.CODLOC == codloc1])
-# ciudad_2_gr = calc_props(data_tramos.loc[data_tramos.CODLOC == codloc2])
+# pirámides de población
+data_pir = agrup_mig.loc[agrup_mig.cod == cod]
 
-# # pirmides de poblacin
-# fig, (ax1, ax2)  = plt.subplots(1,2, figsize= ( 10, 6 ), sharex= True, sharey='row')
+# función para graficar
+def bars_pyramid(df, axis, col_agrup, colors, bar_order):
+    "Grafica barras para pirámdes"
+    for c, group in zip(colors, df[col_agrup].unique()):
+        sns.barplot(x='porc_pers',
+                    y='tramo',
+                    data=df.loc[df[col_agrup]==group, :],
+                    order = bar_order,
+                    color=c,
+                    ax=axis)
 
-# bins = [0 if i==-1 else i for i in range(-1,95,5)]
-# bins.append(120)
-# l1 = [str(i) if i==0 else str(i+1) for i in bins][:19]
-# l2 = [str(i) for i in bins][1:]
-# labels = ['-'.join([l1[i], l2[i]]) for i in range(19)]
-# labels.append('+95')
+def etiquetar_sexos(x_position, y_position, ax_name, colors, font_size):
+        # Varones
+        ax_name.text(x_position*-1, y_position, 'Varones',
+        horizontalalignment='left',
+        color=colors[0], fontsize=font_size)
+        # Mujeres
+        ax_name.text(x_position, y_position, 'Mujeres',
+        horizontalalignment='right',
+        color=colors[1], fontsize=font_size)
+
+# vector de etiquetas para cada tramo
+y_labels = ['+95','90-94','85-89','80-84','75-79','70-74',
+            '65-69','60-64','55-59','50-54','45-49','40-44',
+            '35-39','30-34','25-29','20-24','15-19','10-14',
+            '5-9','0-4']
+
+
+fig, ax  = plt.subplots(1, figsize= ( 10, 6 ))
+
+# plot
+group_col = 'sexo_label'
+order_of_bars = y_labels
+colors = ['lightblue', 'seagreen']
+label=['sexo', '']
+
+bars_pyramid(data_pir, ax, 'sexo_label', colors, y_labels)
+
+tit = f'Pirámide de migrantes entre {nom_depto1} y {nom_depto2}'
+ax.set_title(tit, pad=20)
+
+ax.set_axisbelow(True)
+ax.set_ylabel(None)
+ax.set_xlabel(None)
+ax.axvline(linewidth=1, color='black')
+ax.set_xlim([-9,9])
+ax.set_xticklabels(['10%','8%','6%','4%','2%','0','2%','4%','6%','8%'])
+
+_ = [s.set_visible(False) for s in ax.spines.values()]
+_ = [t.set_visible(False) for t in ax.get_yticklines()]
+
+etiquetar_sexos(3, 0, ax, ['cadetblue', 'green'], 10)
+
     
-# # plot
-# group_col = 'sexo_label'
-# order_of_bars = labels[::-1]
-# colors = ['skyblue', 'seagreen']
-# label=['sexo', 'sasa']
+st.pyplot(fig)
 
-# array_sexo = ciudad_1_gr[group_col].unique()
 
-# for c, group in zip(colors, array_sexo):
-#     sns.barplot(x='porc_pers', y='tramo_label', data=ciudad_1_gr.loc[ciudad_1_gr[group_col]==group, :],
-#                 order = order_of_bars, color=c, label=group, ax=ax1)
 
-# for c, group in zip(colors, array_sexo):
-#     sns.barplot(x='porc_pers', y='tramo_label', data=ciudad_2_gr.loc[ciudad_2_gr[group_col]==group, :],
-#                 order = order_of_bars, color=c, label=group, ax=ax2)
-
-# ax1.set_title(nom_loc1, pad=20)
-# ax2.set_title(nom_loc2, pad=20)
-
-# labels = ['8%', '6%','4%','2%','0','2%','4%','6%']
-
-# for i in [ax1, ax2]:
-#     i.set_axisbelow(True)
-#     i.set_ylabel(None)
-#     i.set_xlabel(None)
-#     i.set_xlim([-7.5, 7.5])
-#     i.axvline(linewidth=1, color='black')
-#     i.set_xticklabels(labels)
-#     _ =[s.set_visible(False) for s in i.spines.values()]
-#     _ =[t.set_visible(False) for t in i.get_yticklines()]
-
-# ax1.text(-3, 0.5, 'Varones',
-#         horizontalalignment='left',
-#         color='cadetblue', fontsize=10)
-
-# ax1.text(3, 0.5, 'Mujeres',
-#         horizontalalignment='right',
-#         color='green', fontsize=10)
-
-# st.pyplot(fig)
 
