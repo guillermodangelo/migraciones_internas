@@ -92,19 +92,15 @@ data = data_group.loc[(d1) & (d2)]
 # crea código de díada
 cod = int(data.cod.values)
 
-st.dataframe(data)
-
-
 # mapita de folium
 center = [-32.706, -56.0284]
 
 m = folium.Map(location=center, zoom_start=6, tiles='Cartodb Positron',
-               width='70%', height='70%', left='0%', top='0%')
+               width='100%', height='100%', left='0%', top='0%')
 
 col_c = ['lat', 'lon']
 coords_1 = list(coords.loc[coords.DEPTO==depto1, col_c].values[0])
 coords_2 = list(coords.loc[coords.DEPTO==depto2, col_c].values[0])
-
 
 # add marker
 ic1 = folium.Icon(color="darkblue",  icon="bullseye", prefix='fa')
@@ -120,17 +116,24 @@ m.add_child(line)
 # call to render Folium map in Streamlit
 folium_static(m)
 
-
 # static text
 pob = data.n.values[0]
 imasc = data.ind_masc.values[0]
+emed = data.edad_mediana.values[0]
 
 # textos
 text = """La díada seleccionada consta de **{}** personas migrantes
-internas con un índice de masculinidad de **{}** hombres
-por cada 100 mujeres."""
+internas.
 
-data_text = text.format(pob, imasc)
+Índice de masculinidad: **{}** hombres por cada 100 mujeres.
+
+Edad mediana: **{}** años.
+
+
+
+"""
+
+data_text = text.format(pob, imasc, emed)
 
 st.markdown(data_text)
 
@@ -178,7 +181,7 @@ label=['sexo', '']
 
 bars_pyramid(data_pir, ax, 'sexo_label', colors, y_labels)
 
-tit = f'Pirámide de migrantes entre {nom_depto1} y {nom_depto2}'
+tit = f'Pirámide de población de migrantes entre {nom_depto1} y {nom_depto2}'
 ax.set_title(tit, pad=20)
 
 ax.set_axisbelow(True)
