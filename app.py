@@ -43,12 +43,18 @@ def encode_depto_pretty(series):
 #icon = 'data/flag.png'
 
 #st.set_page_config(page_title='Test', page_icon = icon)
-st.set_page_config(page_title='Test')
+st.set_page_config(page_title='Migrantes internos en Uruguay')
 
-st.title("Test")
-st.markdown("Aplicación para comparar pirámides de población de dos localidades "
-            "de Uruguay según datos del Censo INE 2011. "
-            "*Desarrollada por Guillermo D'Angelo.*")
+st.title("Migrantes internos en Uruguay 🇺🇾")
+
+desc = """
+Aplicación para comparar datos
+demográficos de los migrantes internos en Uruguay
+
+*Desarrollada por Guillermo D'Angelo.*
+"""
+
+st.markdown(desc)
 
 @st.cache(persist=True)
 def load_data(data_path):
@@ -72,9 +78,16 @@ nom_depto = ['Montevideo', 'Artigas', 'Canelones',
 
 agrup_mig = load_data_pickle('data/agrup_piramides_tablero.pkl')
 
-#### sidebars #####
-st.sidebar.title('Selección de departamentos 👇')
 
+#### sidebars #####
+st.sidebar.title('Selección de departamentos')
+
+side_text = """
+Seleccione un departamento de origen y uno de destino,
+a partir de dicha selección se presentarán los datos
+"""
+
+st.sidebar.markdown(side_text)
 
 # sidebar 1
 nom_depto1 = st.sidebar.selectbox("Departamento", nom_depto, key=1, index=3)
@@ -95,8 +108,15 @@ cod = int(data.cod.values)
 # mapita de folium
 center = [-32.706, -56.0284]
 
-m = folium.Map(location=center, zoom_start=6, tiles='Cartodb Positron',
-               width='100%', height='100%', left='0%', top='0%')
+m = folium.Map(
+    location=center,
+    zoom_start=6,
+    tiles='Cartodb Positron',
+    width='70%',
+    height='70%',
+    left='0%',
+    top='10%'
+    )
 
 col_c = ['lat', 'lon']
 coords_1 = list(coords.loc[coords.DEPTO==depto1, col_c].values[0])
@@ -121,13 +141,15 @@ pob = data.n.values[0]
 imasc = data.ind_masc.values[0]
 emed = data.edad_mediana.values[0]
 
+
 # textos
 text = """La díada seleccionada consta de **{}** personas migrantes
 internas.
 
 Índice de masculinidad: **{}** hombres por cada 100 mujeres.
 
-Edad mediana: **{}** años.
+Edad mediana: **{} años** (la del total de la población era de 34 años,
+la del total de la población migrante interna era de 28 años).
 
 
 
