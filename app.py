@@ -49,7 +49,8 @@ st.title("Migrantes internos en Uruguay 🇺🇾")
 
 desc = """
 Aplicación para comparar datos
-demográficos de los migrantes internos en Uruguay
+demográficos de los migrantes internos en Uruguay,
+según los datos del Censo INE 2011.
 
 *Desarrollada por Guillermo D'Angelo.*
 """
@@ -143,23 +144,19 @@ emed = data.edad_mediana.values[0]
 
 
 # textos
-text = """La díada seleccionada consta de **{}** personas migrantes
-internas.
+text = """Los migrantes entre {} y {} fueron **{}**, según datos censales.
 
 Índice de masculinidad: **{}** hombres por cada 100 mujeres.
 
 Edad mediana: **{} años** (la del total de la población era de 34 años,
 la del total de la población migrante interna era de 28 años).
-
-
-
 """
 
-data_text = text.format(pob, imasc, emed)
+data_text = text.format(nom_depto1, nom_depto2, pob, imasc, emed)
 
 st.markdown(data_text)
 
-
+n_migrantes = 148759
 
 
 # pirámides de población
@@ -198,7 +195,7 @@ fig, ax  = plt.subplots(1, figsize= ( 10, 6 ))
 # plot
 group_col = 'sexo_label'
 order_of_bars = y_labels
-colors = ['lightblue', 'seagreen']
+colors = ['#7b3294', '#008837']
 label=['sexo', '']
 
 bars_pyramid(data_pir, ax, 'sexo_label', colors, y_labels)
@@ -216,7 +213,7 @@ ax.set_xticklabels(['10%','8%','6%','4%','2%','0','2%','4%','6%','8%'])
 _ = [s.set_visible(False) for s in ax.spines.values()]
 _ = [t.set_visible(False) for t in ax.get_yticklines()]
 
-etiquetar_sexos(3, 0, ax, ['cadetblue', 'green'], 10)
+etiquetar_sexos(3, 0, ax, colors, 10)
 
     
 st.pyplot(fig)
