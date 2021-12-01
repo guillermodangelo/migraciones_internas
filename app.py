@@ -113,10 +113,10 @@ m = folium.Map(
     location=center,
     zoom_start=6,
     tiles='Cartodb Positron',
-    width='70%',
-    height='70%',
+    width='100%',
+    height='100%',
     left='0%',
-    top='10%'
+    top='0%'
     )
 
 col_c = ['lat', 'lon']
