@@ -91,11 +91,11 @@ a partir de dicha selección se presentarán los datos
 st.sidebar.markdown(side_text)
 
 # sidebar 1
-nom_depto1 = st.sidebar.selectbox("Departamento", nom_depto, key=1, index=3)
+nom_depto1 = st.sidebar.selectbox("Departamento origen", nom_depto, key=1, index=3)
 depto1 = encode_depto_pretty(pd.Series(nom_depto1))
 
 # sidebar 2
-nom_depto2 = st.sidebar.selectbox("Departamento", nom_depto, key=3, index=9)
+nom_depto2 = st.sidebar.selectbox("Departamento destino", nom_depto, key=3, index=9)
 depto2 = encode_depto_pretty(pd.Series(nom_depto2))
 
 # extrae datos en objetos
@@ -144,7 +144,7 @@ emed = data.edad_mediana.values[0]
 
 
 # textos
-text = """Los migrantes entre {} y {} fueron **{}**, según datos censales.
+text = """Los migrantes inernos con origen en {} y destino en {} fueron **{}**, según datos censales.
 
 Índice de masculinidad: **{}** hombres por cada 100 mujeres.
 
