@@ -144,7 +144,7 @@ emed = data.edad_mediana.values[0]
 
 
 # textos
-text = """Los migrantes inernos con origen en {} y destino en {} fueron **{}**, según datos censales.
+text = """Los migrantes inernos con origen en **{}** y destino en **{}** fueron **{}**, según datos censales.
 
 Índice de masculinidad: **{}** hombres por cada 100 mujeres.
 
