@@ -2,13 +2,13 @@
 from streamlit_folium import folium_static
 import folium
 import pandas as pd
-import pickle
 import numpy as np
 import pylab as pl
 import matplotlib.pyplot as plt
 from matplotlib.patches import Patch
 import matplotlib.font_manager as font_manager
 import seaborn as sns
+import sys
 
 font_legend = font_manager.FontProperties(family='Arial', style='normal', size=10)
 
@@ -55,27 +55,31 @@ según los datos del Censo INE 2011.
 *Desarrollada por Guillermo D'Angelo.*
 """
 
-st.markdown(desc)
+st.caption(desc)
 
 @st.cache(persist=True)
-def load_data(data_path):
-    data = pd.read_csv(data_path)
-    return data
-
 def load_data_pickle(data_path):
     data = pd.read_pickle(data_path, compression='gzip')
     return data
 
-deptos = load_data('data/deptos.csv')
-data_group = load_data('data/datos_tablero.csv')
-coords = load_data('data/coords.csv')
-nom_depto = ['Montevideo', 'Artigas', 'Canelones',
-              'Cerro Largo', 'Colonia', 'Durazno',
-              'Flores', 'Florida', 'Lavalleja',
-              'Maldonado', 'Paysandú', 'Río Negro',
-              'Rivera', 'Rocha', 'Salto', 'San José',
-              'Soriano', 'Tacuarembó', 'Treinta y Tres']
+files = [
+    'data/deptos.csv',
+    'data/datos_tablero.csv',
+    'data/coords.csv',
+    ]
 
+deptos, data_group , coords = [pd.read_csv(i) for i in files]
+
+dd = pd.read_csv('data/dd_deptos.csv', sep=';')
+
+nom_depto = [
+    'Montevideo', 'Artigas', 'Canelones',
+    'Cerro Largo', 'Colonia', 'Durazno',
+    'Flores', 'Florida', 'Lavalleja',
+    'Maldonado', 'Paysandú', 'Río Negro',
+    'Rivera', 'Rocha', 'Salto', 'San José',
+    'Soriano', 'Tacuarembó', 'Treinta y Tres'
+    ]
 
 agrup_mig = load_data_pickle('data/agrup_piramides_tablero.pkl')
 
@@ -98,6 +102,9 @@ depto1 = encode_depto_pretty(pd.Series(nom_depto1))
 nom_depto2 = st.sidebar.selectbox("Departamento destino", nom_depto, key=3, index=9)
 depto2 = encode_depto_pretty(pd.Series(nom_depto2))
 
+if depto1 == depto2:
+    st.markdown('**Error: los departamentos de origen y destino deben ser diferentes**')
+
 # extrae datos en objetos
 d1 = data_group.depto_origen==depto1
 d2 = data_group.depto_destino==depto2
@@ -105,6 +112,54 @@ data = data_group.loc[(d1) & (d2)]
 
 # crea código de díada
 cod = int(data.cod.values)
+
+# filtra datos diádicos
+dd_filtrado = dd.loc[dd.cod==cod]
+
+
+
+# header
+subhead = f'Migrantes desde **{nom_depto1}** a **{nom_depto2}**'
+st.subheader(subhead)
+
+# Métricas
+pob =   str(data.n.values[0])
+imasc_int = round(data.ind_masc.values[0])
+imasc = str(imasc_int)
+emed =  str(data.edad_mediana.values[0])
+dist =  str(dd_filtrado.dist_km.values[0])
+
+delta_imasc = str(95 - imasc_int)
+
+n_migrantes = 148759
+
+col1, col2, col3, col4 = st.columns(4)
+col1.metric("Nro. migrantes", pob)
+col2.metric("Índice masculinidad", imasc, delta_imasc, delta_color='off')
+col3.metric("Edad mediana", emed + ' años')
+col4.metric('Distancia por rutas', dist + ' km')
+
+
+# textos
+text = """Los migrantes inernos con origen en **{}** y destino en **{}** fueron **{}**, según datos censales.
+
+El índice de masculinidad de dicha población fue **{}** hombres por cada 100 mujeres.
+
+La edad mediana era de **{} años**, en tanto la del total de la población era de 34 años,
+la del total de la población migrante interna era de 28 años.
+
+La distancia por rutas entre los centros medios de población de ambos
+departamentos es **{}** km.
+"""
+
+data_text = text.format(nom_depto1, nom_depto2, pob, imasc, emed, dist)
+
+
+with st.expander("Ver más"):
+     st.markdown(data_text)
+
+
+
 
 # mapita de folium
 center = [-32.706, -56.0284]
@@ -134,29 +189,10 @@ line = folium.PolyLine(locations=loc, color='gray', weight=4)
 
 m.add_child(line)
 
+m.fit_bounds([coords_1, coords_2], max_zoom=9) 
+
 # call to render Folium map in Streamlit
 folium_static(m)
-
-# static text
-pob = data.n.values[0]
-imasc = data.ind_masc.values[0]
-emed = data.edad_mediana.values[0]
-
-
-# textos
-text = """Los migrantes inernos con origen en **{}** y destino en **{}** fueron **{}**, según datos censales.
-
-Índice de masculinidad: **{}** hombres por cada 100 mujeres.
-
-Edad mediana: **{} años** (la del total de la población era de 34 años,
-la del total de la población migrante interna era de 28 años).
-"""
-
-data_text = text.format(nom_depto1, nom_depto2, pob, imasc, emed)
-
-st.markdown(data_text)
-
-n_migrantes = 148759
 
 
 # pirámides de población
@@ -221,3 +257,4 @@ st.pyplot(fig)
 
 
 
+st.dataframe(dd.head())
