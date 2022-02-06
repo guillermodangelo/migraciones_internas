@@ -88,22 +88,22 @@ agrup_mig = load_data_pickle('data/agrup_piramides_tablero.pkl')
 st.sidebar.title('Selección de departamentos')
 
 side_text = """
-Seleccione un departamento de origen y uno de destino,
+Seleccione un departamento de residencia en 2006 y uno de residencia habitual en 2011,
 a partir de dicha selección se presentarán los datos
 """
 
 st.sidebar.markdown(side_text)
 
 # sidebar 1
-nom_depto1 = st.sidebar.selectbox("Departamento origen", nom_depto, key=1, index=3)
+nom_depto1 = st.sidebar.selectbox("Departamento de residencia en 2006", nom_depto, key=1, index=3)
 depto1 = encode_depto_pretty(pd.Series(nom_depto1))
 
 # sidebar 2
-nom_depto2 = st.sidebar.selectbox("Departamento destino", nom_depto, key=3, index=9)
+nom_depto2 = st.sidebar.selectbox("Departamento de residencia habitual en 2011", nom_depto, key=3, index=9)
 depto2 = encode_depto_pretty(pd.Series(nom_depto2))
 
 if depto1 == depto2:
-    st.markdown('**Error: los departamentos de origen y destino deben ser diferentes**')
+    st.markdown('**Error: los departamentos de residencia en 2006 y de residencia habitual en 2011 deben ser diferentes**')
 
 # extrae datos en objetos
 d1 = data_group.depto_origen==depto1
@@ -141,7 +141,7 @@ col4.metric('Distancia por rutas', dist + ' km')
 
 
 # textos
-text = """Los migrantes inernos con origen en **{}** y destino en **{}** fueron **{}**, según datos censales.
+text = """Los migrantes internos con residencia en **{}** en 2006 y residencia habitual en **{}** en 2011 fueron **{}**, según datos censales.
 
 El índice de masculinidad de dicha población fue **{}** hombres por cada 100 mujeres.
 
