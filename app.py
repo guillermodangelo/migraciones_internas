@@ -88,18 +88,19 @@ agrup_mig = load_data_pickle('data/agrup_piramides_tablero.pkl')
 st.sidebar.title('Selección de departamentos')
 
 side_text = """
-Seleccione un departamento de residencia en 2006 y uno de residencia habitual en 2011,
-a partir de dicha selección se presentarán los datos
+Seleccione un departamento de residencia en 2006 y uno de residencia habitual en 2011.
+
+A partir de dicha selección se presentarán los datos
 """
 
 st.sidebar.markdown(side_text)
 
 # sidebar 1
-nom_depto1 = st.sidebar.selectbox("Departamento de residencia en 2006", nom_depto, key=1, index=3)
+nom_depto1 = st.sidebar.selectbox("**Departamento de residencia en 2006**", nom_depto, key=1, index=3)
 depto1 = encode_depto_pretty(pd.Series(nom_depto1))
 
 # sidebar 2
-nom_depto2 = st.sidebar.selectbox("Departamento de residencia habitual en 2011", nom_depto, key=3, index=9)
+nom_depto2 = st.sidebar.selectbox("**Departamento de residencia habitual en 2011**", nom_depto, key=3, index=9)
 depto2 = encode_depto_pretty(pd.Series(nom_depto2))
 
 if depto1 == depto2:
