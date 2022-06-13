@@ -2,47 +2,13 @@
 from streamlit_folium import folium_static
 import folium
 import pandas as pd
-import numpy as np
-import pylab as pl
 import matplotlib.pyplot as plt
-from matplotlib.patches import Patch
 import matplotlib.font_manager as font_manager
-import seaborn as sns
-import sys
+from src.functions import encode_depto_pretty, bars_pyramid, etiquetar_sexos
+from src.functions import nom_depto, y_labels
 
 font_legend = font_manager.FontProperties(family='Arial', style='normal', size=10)
 
-def encode_depto_pretty(series):
-    "Codifica departamento INE, formateado"
-    deptos_dict = {
-        'Montevideo': 1,
-        'Artigas': 2,
-        'Canelones': 3,
-        'Cerro Largo': 4,
-        'Colonia': 5,
-        'Durazno': 6,
-        'Flores': 7,
-        'Florida': 8,
-        'Lavalleja': 9,
-        'Maldonado': 10,
-        'Paysandú': 11,
-        'Río Negro': 12,
-        'Rivera': 13,
-        'Rocha': 14,
-        'Salto': 15,
-        'San José': 16,
-        'Soriano': 17,
-        'Tacuarembó': 18,
-        'Treinta y Tres': 19
-        }
-    cod = series.map(deptos_dict).values
-
-    return cod[0]
-
-
-#icon = 'data/flag.png'
-
-#st.set_page_config(page_title='Test', page_icon = icon)
 st.set_page_config(page_title='Migrantes internos en Uruguay')
 
 st.title("Migrantes internos en Uruguay 🇺🇾")
@@ -72,15 +38,6 @@ deptos, data_group , coords = [pd.read_csv(i) for i in files]
 
 dd = pd.read_csv('data/dd_deptos.csv', sep=';')
 
-nom_depto = [
-    'Montevideo', 'Artigas', 'Canelones',
-    'Cerro Largo', 'Colonia', 'Durazno',
-    'Flores', 'Florida', 'Lavalleja',
-    'Maldonado', 'Paysandú', 'Río Negro',
-    'Rivera', 'Rocha', 'Salto', 'San José',
-    'Soriano', 'Tacuarembó', 'Treinta y Tres'
-    ]
-
 agrup_mig = load_data_pickle('data/agrup_piramides_tablero.pkl')
 
 
@@ -96,15 +53,15 @@ A partir de dicha selección se presentarán los datos
 st.sidebar.markdown(side_text)
 
 # sidebar 1
-nom_depto1 = st.sidebar.selectbox("**Departamento de residencia en 2006**", nom_depto, key=1, index=3)
+nom_depto1 = st.sidebar.selectbox("Departamento de residencia en 2006", nom_depto, key=1, index=3)
 depto1 = encode_depto_pretty(pd.Series(nom_depto1))
 
 # sidebar 2
-nom_depto2 = st.sidebar.selectbox("**Departamento de residencia habitual en 2011**", nom_depto, key=3, index=9)
+nom_depto2 = st.sidebar.selectbox("Departamento de residencia habitual en 2011", nom_depto, key=3, index=9)
 depto2 = encode_depto_pretty(pd.Series(nom_depto2))
 
 if depto1 == depto2:
-    st.markdown('**Error: los departamentos de residencia en 2006 y de residencia habitual en 2011 deben ser diferentes**')
+    st.markdown('Error: los departamentos de residencia en 2006 y de residencia habitual en 2011 deben ser diferentes')
 
 # extrae datos en objetos
 d1 = data_group.depto_origen==depto1
@@ -116,7 +73,6 @@ cod = int(data.cod.values)
 
 # filtra datos diádicos
 dd_filtrado = dd.loc[dd.cod==cod]
-
 
 
 # header
@@ -155,11 +111,8 @@ departamentos es **{}** km.
 
 data_text = text.format(nom_depto1, nom_depto2, pob, imasc, emed, dist)
 
-
 with st.expander("Ver más"):
      st.markdown(data_text)
-
-
 
 
 # mapita de folium
@@ -198,34 +151,6 @@ folium_static(m)
 
 # pirámides de población
 data_pir = agrup_mig.loc[agrup_mig.cod == cod]
-
-# función para graficar
-def bars_pyramid(df, axis, col_agrup, colors, bar_order):
-    "Grafica barras para pirámdes"
-    for c, group in zip(colors, df[col_agrup].unique()):
-        sns.barplot(x='porc_pers',
-                    y='tramo',
-                    data=df.loc[df[col_agrup]==group, :],
-                    order = bar_order,
-                    color=c,
-                    ax=axis)
-
-def etiquetar_sexos(x_position, y_position, ax_name, colors, font_size):
-        # Varones
-        ax_name.text(x_position*-1, y_position, 'Varones',
-        horizontalalignment='left',
-        color=colors[0], fontsize=font_size)
-        # Mujeres
-        ax_name.text(x_position, y_position, 'Mujeres',
-        horizontalalignment='right',
-        color=colors[1], fontsize=font_size)
-
-# vector de etiquetas para cada tramo
-y_labels = ['+95','90-94','85-89','80-84','75-79','70-74',
-            '65-69','60-64','55-59','50-54','45-49','40-44',
-            '35-39','30-34','25-29','20-24','15-19','10-14',
-            '5-9','0-4']
-
 
 fig, ax  = plt.subplots(1, figsize= ( 10, 6 ))
 
