@@ -1,5 +1,4 @@
-﻿from numpy import short
-import streamlit as st
+﻿import streamlit as st
 from streamlit_folium import folium_static
 import folium
 import pandas as pd
@@ -7,7 +6,6 @@ import matplotlib.pyplot as plt
 import matplotlib.font_manager as font_manager
 from src.functions import encode_depto_pretty, bars_pyramid, etiquetar_sexos
 from src.functions import nom_depto, y_labels
-import pickle
 
 font_legend = font_manager.FontProperties(family='Arial', style='normal', size=10)
 
