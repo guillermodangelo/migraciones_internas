@@ -26,8 +26,8 @@ según los datos del Censo INE 2011.
 st.caption(desc)
 
 @st.cache(persist=True)
-def load_data_pickle(data_path, comp='gzip'):
-    data = pd.read_pickle(data_path, compression=comp)
+def load_data_pickle(data_path):
+    data = pd.read_pickle(data_path, compression='gzip')
     return data
 
 files = [
@@ -41,8 +41,7 @@ deptos, data_group , coords = [pd.read_csv(i) for i in files]
 dd = pd.read_csv('data/dd_deptos.csv', sep=';')
 
 agrup_mig = load_data_pickle('data/agrup_piramides_tablero.pkl')
-
-shortest_paths = load_data_pickle('data/shortest_paths.pkl', comp=None)
+shortest_paths = load_data_pickle('data/shortest_paths.pkl')
 
 #### sidebars #####
 st.sidebar.title('Selección de departamentos')
