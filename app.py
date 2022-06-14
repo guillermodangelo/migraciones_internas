@@ -1,4 +1,5 @@
-﻿import streamlit as st
+﻿from numpy import short
+import streamlit as st
 from streamlit_folium import folium_static
 import folium
 import pandas as pd
@@ -6,6 +7,7 @@ import matplotlib.pyplot as plt
 import matplotlib.font_manager as font_manager
 from src.functions import encode_depto_pretty, bars_pyramid, etiquetar_sexos
 from src.functions import nom_depto, y_labels
+import pickle
 
 font_legend = font_manager.FontProperties(family='Arial', style='normal', size=10)
 
@@ -31,7 +33,7 @@ def load_data_pickle(data_path):
 files = [
     'data/deptos.csv',
     'data/datos_tablero.csv',
-    'data/coords.csv',
+    'data/coords.csv'
     ]
 
 deptos, data_group , coords = [pd.read_csv(i) for i in files]
@@ -40,6 +42,8 @@ dd = pd.read_csv('data/dd_deptos.csv', sep=';')
 
 agrup_mig = load_data_pickle('data/agrup_piramides_tablero.pkl')
 
+with open('data/shortest_paths.pkl', 'rb') as handle:
+    shortest_paths = pickle.load(handle)
 
 #### sidebars #####
 st.sidebar.title('Selección de departamentos')
@@ -138,12 +142,13 @@ ic2 = folium.Icon(color="cadetblue", icon="bullseye", prefix='fa')
 folium.Marker(coords_1, popup=nom_depto1, icon=ic1).add_to(m)
 folium.Marker(coords_2, popup=nom_depto2, icon=ic2).add_to(m)
 
-loc = [coords_1, coords_2]
-line = folium.PolyLine(locations=loc, color='gray', weight=4)
+route = shortest_paths.loc[(shortest_paths.ori==depto1) & (shortest_paths.des==depto2), 'coords']
+
+line = folium.PolyLine(route, color='gray', weight=4)
 
 m.add_child(line)
 
-m.fit_bounds([coords_1, coords_2], max_zoom=9) 
+m.fit_bounds([coords_1, coords_2], max_zoom=10) 
 
 # call to render Folium map in Streamlit
 folium_static(m)
