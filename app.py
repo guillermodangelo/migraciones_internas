@@ -26,8 +26,8 @@ según los datos del Censo INE 2011.
 st.caption(desc)
 
 @st.cache(persist=True)
-def load_data_pickle(data_path):
-    data = pd.read_pickle(data_path, compression='gzip')
+def load_data_pickle(data_path, comp='gzip'):
+    data = pd.read_pickle(data_path, compression=comp)
     return data
 
 files = [
@@ -42,8 +42,7 @@ dd = pd.read_csv('data/dd_deptos.csv', sep=';')
 
 agrup_mig = load_data_pickle('data/agrup_piramides_tablero.pkl')
 
-with open('data/shortest_paths.pkl', 'rb') as handle:
-    shortest_paths = pickle.load(handle)
+shortest_paths = load_data_pickle('data/shortest_paths.pkl', comp=None)
 
 #### sidebars #####
 st.sidebar.title('Selección de departamentos')
@@ -148,7 +147,7 @@ line = folium.PolyLine(route, color='gray', weight=4)
 
 m.add_child(line)
 
-m.fit_bounds([coords_1, coords_2], max_zoom=10) 
+m.fit_bounds([coords_1, coords_2], padding=(0.02, 0.02)) 
 
 # call to render Folium map in Streamlit
 folium_static(m)
